@@ -1,1 +1,9 @@
 # opentak
+
+## Contributing
+
+```
+uv sync
+```
+
+* 
