@@ -25,9 +25,10 @@ jobs:
         run: |
           git config --global user.name "Docs Deploy"
           git config --global user.email "docs.deploy@heva-data.com" 
-          uv run mike deploy --config-file mkdocs.yaml -u --push $(uv version --short) latest 
+          uv run mike deploy --config-file mkdocs.yaml -u --push $(uv version --short) latest
 
   # Create a github tag and release based on last commit and current python project version
+  # Publish package to Pypi
   release:
     runs-on: ubuntu-latest
     steps:
@@ -53,12 +54,18 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           echo "MESSAGE=$(git log -1 --pretty=%B)" >> "$GITHUB_OUTPUT"
 
-      - name: Create release 
+      - name: Create release
         uses: ncipollo/release-action@v1
         with:
           body: |
             # Release ${{ steps.version.outputs.VERSION }}
 
-            ${{ steps.version.outputs.MESSAGE }} 
+            ${{ steps.version.outputs.MESSAGE }}
           commit: main
           tag: ${{ steps.version.outputs.VERSION }}
+
+      - name: Build
+        run: uv build
+
+      - name: Deploy to Pypi
+        run: uv publish --publish-url ${{ vars.PYPI_URL }} --token ${{ secrets.PYPI_TOKEN }}
